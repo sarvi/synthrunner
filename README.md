@@ -51,3 +51,8 @@ Generate Documentationn
 pipenv run sphinx-quickstart
 pipenv run sphinx-build -b html docs/source docs/build_html
 ```
+
+Running the synthrunner on a test case
+```
+synthrunner -f tests/synth_httpclient.py --headless -i 1 --host https://www.google.com
+```

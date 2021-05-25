@@ -8,6 +8,8 @@ numpy = "*"
 requests = "*"
 twine = "*"
 synthrunner = {editable = true, path = "."}
+locust = "1.5.3"
+opentelemetry-api = "1.2.0"
 
 [dev-packages]
 "flake8" = "*"
@@ -19,4 +21,3 @@ sphinx-rtd-theme = "*"
 
 [requires]
 python_version = "3.7"
-locust = "1.5.3"

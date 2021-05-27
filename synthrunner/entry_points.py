@@ -14,13 +14,11 @@ from dotenv import load_dotenv
 from locust import events
 from kafka import KafkaProducer
 
+
 def push_telemetry(name, val, label_dict):
     """ Push data to kafka topic """
-    kafka_nodes = os.environ.get('KAFKA_BOOTSTRAP_NODES', '').split(',')
+    kafka_nodes = [x.strip() for x in os.environ.get('KAFKA_BOOTSTRAP_NODES', '').split(',')]
     kafka_topic = os.environ.get('KAFKA_TOPIC')
-    if not(kafka_nodes and kafka_topic):
-        # telemetry kafka config not initialized
-        return
     message = {
         'name': name,
         'type': 'histogram',
@@ -29,11 +27,17 @@ def push_telemetry(name, val, label_dict):
         'timestamp': round(time.time() * 1000),
         'labels': label_dict or {}
     }
+    if not (kafka_nodes and kafka_topic):
+        # telemetry kafka config not initialized
+        return
+    print("Metrics payload: \n" + json.dumps(message, indent=4))
+    return
     producer = KafkaProducer(bootstrap_servers=kafka_nodes,
                              value_serializer=lambda v:
                              json.dumps(v).encode('utf-8'))
     producer.send(kafka_topic, message)
     producer.flush()
+
 
 @events.request.add_listener
 def my_request_handler(request_type, name, response_time, response_length, response,
@@ -42,7 +46,6 @@ def my_request_handler(request_type, name, response_time, response_length, respo
         print(f"Request to {name} failed with exception {exception}")
     else:
         print(f"Successfully made a request to: {name}")
-
     rval = False if exception else response.ok
     # Send telemetry data
     labels = {
@@ -56,7 +59,8 @@ def my_request_handler(request_type, name, response_time, response_length, respo
         'site': os.environ.get('SITE', 'unknown'),
         'realUser': None,
         'processUser': os.environ.get('USER', 'ngdevx'),
-        'runMode': "REST"
+        'runMode': 'CLI' if request_type == "EXEC" else "REST",
+        'response_time': response_time
     }
     push_telemetry('synthetic_run', rval, labels)
 

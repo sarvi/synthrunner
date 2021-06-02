@@ -6,13 +6,14 @@ This module contains the entry-point functions for the synthrunner module,
 that are referenced in setup.py.
 """
 import json
-import locust_plugins
 import os
+import socket
 import time
-from locust.main import main as locust_main
+
 from dotenv import load_dotenv
-from locust import events
 from kafka import KafkaProducer
+from locust.main import main as locust_main
+from locust_plugins import *
 
 
 def push_telemetry(name, val, label_dict):
@@ -22,8 +23,8 @@ def push_telemetry(name, val, label_dict):
     message = {
         'name': name,
         'type': 'histogram',
-        'value': 0 if val else 1,
-        'documentation': 'Synthetic Run Result',
+        'value': val,
+        'documentation': 'Synthetic Run Elapsed Time',
         'timestamp': round(time.time() * 1000),
         'labels': label_dict or {}
     }
@@ -46,7 +47,6 @@ def my_request_handler(request_type, name, response_time, response_length, respo
         print(f"Request to {name} failed with exception {exception}")
     else:
         print(f"Successfully made a request to: {name}")
-    rval = False if exception else response.ok
     # Send telemetry data
     labels = {
         'endpoint': name,
@@ -55,14 +55,13 @@ def my_request_handler(request_type, name, response_time, response_length, respo
         'status': 'SUCCESS' if not exception and response.ok else 'FAILURE',
         'status_code': response.status_code,
         'env': os.environ.get('ENV', 'STAGE'),
-        'hostname': os.environ.get('HOST'),
+        'hostname': socket.getfqdn(),
         'site': os.environ.get('SITE', 'unknown'),
         'realUser': None,
         'processUser': os.environ.get('USER', 'ngdevx'),
-        'runMode': 'CLI' if request_type == "EXEC" else "REST",
-        'response_time': response_time
+        'runMode': 'CLI' if request_type == "EXEC" else "REST"
     }
-    push_telemetry('synthetic_run', rval, labels)
+    push_telemetry('out_synrunner_time', response_time, labels)
 
 
 def main() -> None:
@@ -76,6 +75,8 @@ def main() -> None:
         # Ensure that number of locust iterations is set, defaults to 1
         # Synthetic runner must not spawn new instances unless iterations > 1
         os.environ.setdefault('LOCUST_ITERATIONS', '1')
+        # Synth runner always run in headless mode
+        os.environ.setdefault('LOCUST_HEADLESS', 'true')
         locust_main()
     except IndexError:
         RuntimeError('please supply a command for synthrunner - e.g. install.')

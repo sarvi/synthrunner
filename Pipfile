@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 locust = "1.5.3"
-locust-plugins = "1.2.1"
+# locust-plugins = "1.2.1"
 python-dotenv = "0.17.1"
 kafka-python = "2.0.2"
 opentelemetry-api = "1.2.0"

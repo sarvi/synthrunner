@@ -26,8 +26,8 @@ setup(
     url=about['__url__'],
     packages=['synthrunner'],
     include_package_data=True,
-    python_requires=">=3.7.*",
-    install_requires=['numpy', 'requests'],
+    python_requires=">=3.6.*",
+    install_requires=['opentelemetry-api', 'locust'],
     license=about['__license__'],
     zip_safe=False,
     entry_points={

@@ -4,10 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-numpy = "*"
-requests = "*"
-twine = "*"
-synthrunner = {editable = true, path = "."}
 locust = "1.5.3"
 locust-plugins = "1.2.1"
 python-dotenv = "0.17.1"
@@ -23,7 +19,7 @@ sphinx = "*"
 sphinx-rtd-theme = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.6"
 
 [pipenv]
-allow_prereleases = true
+allow_prereleases = false

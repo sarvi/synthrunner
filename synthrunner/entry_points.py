@@ -6,7 +6,7 @@ This module contains the entry-point functions for the synthrunner module,
 that are referenced in setup.py.
 """
 import json
-# import locust_plugins
+import locust_plugins
 import os
 import time
 from locust.main import main as locust_main

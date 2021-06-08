@@ -1,10 +1,11 @@
-import time
-from locust import task, between
-from tests.locust_extra import CLIUser
+from locust import task, between, tag
+from contrib.users import CLIUser
+
 
 class MyCLIUser(CLIUser):
     wait_time = between(1, 2)
 
+    @tag('synth')
     @task
     def hello_world_cli(self):
-        cli = self.client.execute("echo", "hello world")
+        self.client.execute("echo", "hello world")

@@ -61,6 +61,7 @@ Flask-BasicAuth = "==0.2.0"
 Jinja2 = "==3.0.1"
 MarkupSafe = "==2.0.1"
 Werkzeug = "==2.0.1"
+synthrunner = {editable = true, path = "."}
 
 [dev-packages]
 "flake8" = "*"

@@ -9,34 +9,34 @@ import json
 import os
 import socket
 import time
+import uuid
 
 from dotenv import load_dotenv
-from kafka import KafkaProducer
+from confluent_kafka import Producer
 from locust.main import main as locust_main
 from locust_plugins import *
 
 
-def push_telemetry(name, val, label_dict):
+def push_telemetry(val, label_dict):
     """ Push data to kafka topic """
-    kafka_nodes = [x.strip() for x in os.environ.get('KAFKA_BOOTSTRAP_NODES', '').split(',')]
+    kafka_nodes = [x.strip() for x in os.environ.get('KAFKA_NODES', '').split(',')]
     kafka_topic = os.environ.get('KAFKA_TOPIC')
-    message = {
-        'name': name,
-        'type': 'histogram',
-        'value': val,
-        'documentation': 'Synthetic Run Elapsed Time',
-        'timestamp': round(time.time() * 1000),
-        'labels': label_dict or {}
+    cid = uuid.uuid4()
+    end_ts = round(time.time() * 1000)
+    start_ts = end_ts - round(val)
+    data = {
+        "source": os.environ.get('NG_SOURCE', 'com.cisco.devx.synthrunner.trace'),
+        "event": os.environ.get('NG_EVENT', 'SpanKindClient'),
+        "startTime": start_ts,
+        "endTime": end_ts,
+        "dataKey": str(cid),
+        "data": label_dict or {}
     }
     if not (kafka_nodes and kafka_topic):
         # telemetry kafka config not initialized
         return
-    print("Metrics payload: \n" + json.dumps(message, indent=4))
-    return
-    producer = KafkaProducer(bootstrap_servers=kafka_nodes,
-                             value_serializer=lambda v:
-                             json.dumps(v).encode('utf-8'))
-    producer.send(kafka_topic, message)
+    producer = Producer({'bootstrap.servers': ','.join(kafka_nodes)})
+    producer.produce(kafka_topic, key=data['dataKey'].encode('utf-8'), value=json.dumps(data).encode('utf-8'))
     producer.flush()
 
 
@@ -49,19 +49,17 @@ def my_request_handler(request_type, name, response_time, response_length, respo
         print(f"Successfully made a request to: {name}")
     # Send telemetry data
     labels = {
-        'endpoint': name,
-        'method': request_type,
-        'version': os.environ.get('VERSION', 'unknown'),
-        'status': 'SUCCESS' if not exception and response.ok else 'FAILURE',
+        'name': os.environ.get('TOOL', 'unknown'),
+        'endpoint': '%s %s' % (request_type, name),
+        'endpoint_type': 'CLI' if request_type == "EXEC" else "API",
+        'status': 'ERROR' if exception else ('OK' if response.ok else 'FAIL'),
         'status_code': response.status_code,
         'env': os.environ.get('ENV', 'STAGE'),
         'hostname': socket.getfqdn(),
         'site': os.environ.get('SITE', 'unknown'),
-        'realUser': None,
-        'processUser': os.environ.get('USER', 'ngdevx'),
-        'runMode': 'CLI' if request_type == "EXEC" else "REST"
+        'userId': os.environ.get('USER', 'ngdevx'),
     }
-    push_telemetry('out_synrunner_time', response_time, labels)
+    push_telemetry(response_time, labels)
 
 
 def main() -> None:
@@ -77,6 +75,7 @@ def main() -> None:
         os.environ.setdefault('LOCUST_ITERATIONS', '1')
         # Synth runner always run in headless mode
         os.environ.setdefault('LOCUST_HEADLESS', 'true')
+        os.environ.setdefault('LOCUST_TAGS', 'synth')
         locust_main()
     except IndexError:
         RuntimeError('please supply a command for synthrunner - e.g. install.')

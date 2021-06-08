@@ -1,4 +1,4 @@
-from locust import HttpUser, task, between
+from locust import HttpUser, task, between, tag
 
 print("Hello World")
 
@@ -9,9 +9,11 @@ print("Hello World")
 
 #     wait_time = between(0.5, 10)
 
+
 class QuickstartUser(HttpUser):
     wait_time = between(1, 2)
 
+    @tag('synth')
     @task
     def hello_world(self):
         self.client.get("/")

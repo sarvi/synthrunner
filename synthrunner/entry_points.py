@@ -15,8 +15,13 @@ from synthrunner import utils
 
 from dotenv import load_dotenv
 from confluent_kafka import Producer
+import locust
+import locust.argument_parser
 from locust.main import main as locust_main
 from locust_plugins import *
+
+import synthrunner
+import synthrunner.__version__ as version
 
 log = logging.getLogger(__name__)  # pylint: disable=locally-disabled, invalid-name
 
@@ -74,6 +79,9 @@ def main() -> None:
     """
 
     try:
+        locust.__version__ = "%s(%s)"%(locust.__version__, version.__version__)
+        locust.version = locust.__version__
+        locust.argument_parser.version = locust.__version__
         load_dotenv()
         # Ensure that number of locust iterations is set, defaults to 1
         # Synthetic runner must not spawn new instances unless iterations > 1

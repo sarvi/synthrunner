@@ -9,9 +9,15 @@ class WITCLIUser(CLIUser):
     wait_time = between(1, 2)
 
     def on_start(self):
+        print("WITCLIUser: on_start")
+        self.spaces = []
+
+    def on_stop(self):
+        print("WITCLIUser: on_stop")
         self.spaces = []
 
     def del_spaces(self):
+        print("WITCLIUser: del_spaces")
         for spc in self.spaces:
             del_process = sp.Popen('wit space delete -noprompt -space %s' % spc,
                                     shell=True, stdout=sp.PIPE,
@@ -23,6 +29,7 @@ class WITCLIUser(CLIUser):
     @task
     def wit_space_list(self, space=None, send_result=True):
         """ Test the wit space list command """
+        print("WITCLIUser: space list")
         command = "wit space list"
         if space:
             args = "-space %s --json" % space
@@ -55,6 +62,7 @@ class WITCLIUser(CLIUser):
     @task
     def wit_space_create(self):
         """ Test the wit space create command """
+        print("WITCLIUser: wit space create")
         command = "wit space create"
         space_name = "mytest_%d" % int(time.time())
         args = "-space %s -team wit --json" % space_name

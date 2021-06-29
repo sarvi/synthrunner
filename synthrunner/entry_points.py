@@ -10,6 +10,7 @@ import os
 import socket
 import time
 import uuid
+from synthrunner import utils
 
 from dotenv import load_dotenv
 from confluent_kafka import Producer
@@ -35,6 +36,7 @@ def push_telemetry(val, label_dict):
     if not (kafka_nodes and kafka_topic):
         # telemetry kafka config not initialized
         return
+    print(f"Sending telemetry {data}")
     producer = Producer({'bootstrap.servers': ','.join(kafka_nodes)})
     producer.produce(kafka_topic, key=data['dataKey'].encode('utf-8'), value=json.dumps(data).encode('utf-8'))
     producer.flush()
@@ -49,19 +51,19 @@ def my_request_handler(request_type, name, response_time, response_length, respo
         print(f"Successfully made a request to: {name}")
     # Send telemetry data
     labels = {
-        'name': os.environ.get('TOOL', 'unknown'),
+        'name': os.environ.get('TOOL', 'synthrunner'),
         'endpoint': '%s %s' % (request_type, name),
         'endpoint_type': 'CLI' if request_type == "EXEC" else "API",
         'status': 'ERROR' if exception else ('OK' if response.ok else 'FAIL'),
         'status_code': response.status_code,
         'env': os.environ.get('ENV', 'STAGE'),
-        'hostname': socket.getfqdn(),
+        'hostname': socket.getfqdn().split('.')[0],
         'site': os.environ.get('SITE', 'unknown'),
         'userId': os.environ.get('USER', 'ngdevx'),
     }
     push_telemetry(response_time, labels)
 
-
+@utils.timethis
 def main() -> None:
     """Main package entry point.
 

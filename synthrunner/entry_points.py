@@ -10,6 +10,7 @@ import os
 import socket
 import time
 import uuid
+import logging
 from synthrunner import utils
 
 from dotenv import load_dotenv
@@ -17,6 +18,7 @@ from confluent_kafka import Producer
 from locust.main import main as locust_main
 from locust_plugins import *
 
+log = logging.getLogger(__name__)  # pylint: disable=locally-disabled, invalid-name
 
 def push_telemetry(val, label_dict):
     """ Push data to kafka topic """
@@ -35,8 +37,9 @@ def push_telemetry(val, label_dict):
     }
     if not (kafka_nodes and kafka_topic):
         # telemetry kafka config not initialized
+        log.debug(f"Not sending telemetry. kafka_nodes={kafka_nodes} or kafka_topic={kafka_topic} not defined")
         return
-    print(f"Sending telemetry {data}")
+    log.debug(f"Sending telemetry {data}")
     producer = Producer({'bootstrap.servers': ','.join(kafka_nodes)})
     producer.produce(kafka_topic, key=data['dataKey'].encode('utf-8'), value=json.dumps(data).encode('utf-8'))
     producer.flush()
@@ -46,9 +49,9 @@ def push_telemetry(val, label_dict):
 def my_request_handler(request_type, name, response_time, response_length, response,
                        context, exception, **kwargs):
     if exception:
-        print(f"Request to {name} failed with exception {exception}")
+        log.debug(f"Request to {name} failed with exception {exception}")
     else:
-        print(f"Successfully made a request to: {name}")
+        log.debug(f"Successfully made a request to: {name}")
     # Send telemetry data
     labels = {
         'name': os.environ.get('TOOL', 'synthrunner'),

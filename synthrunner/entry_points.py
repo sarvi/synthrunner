@@ -5,6 +5,7 @@ synthrunner.entry_points.py
 This module contains the entry-point functions for the synthrunner module,
 that are referenced in setup.py.
 """
+import sys
 import os
 import logging
 from synthrunner import utils
@@ -64,7 +65,15 @@ def main() -> None:
         os.environ.setdefault('LOCUST_USERS', '1')
         os.environ.setdefault('LOCUST_STOP_TIMEOUT', '60')
         os.environ.setdefault('LOCUST_TAGS', 'synthtest')
+        os.environ.setdefault('LOCUST_RUN_TIME', '120')
+        if os.environ.get('TOOL') is None:
+            log.error('Missing environment variable TOOL. Name of tool or service being tested. Example: com.cisco.devx.wit')
+            sys.exit(1)
+        if os.environ.get('TESTSERVICE') is None:
+            log.error('Missing environment variable TESTSERVICE. Name of tool or service being tested. Example: com.cisco.devx.synthrunner')
+            sys.exit(1)
         locust_main()
     except IndexError:
-        RuntimeError('please supply a command for synthrunner - e.g. install.')
+        log.error('please supply a command for synthrunner - e.g. install.')
+        sys.exit(1)
     return None

@@ -15,11 +15,12 @@ TRACE_ID=str(uuid.uuid4())
 
 def push_trace(trace_data):
     """ Push data to kafka topic """
-    kafka_nodes = [x.strip() for x in os.environ.get('KAFKA_NODES', '').split(',')]
+    kafka_nodes = [x.strip() for x in os.environ.get('KAFKA_NODES').split(',')] if os.environ.get('KAFKA_NODES', None) else []
     kafka_topic = os.environ.get('KAFKA_TOPIC')
     if not (kafka_nodes and kafka_topic):
         # telemetry kafka config not initialized
-        log.debug(f"Not sending telemetry. kafka_nodes={kafka_nodes} or kafka_topic={kafka_topic} not defined")
+        log.debug("Telemetry: {}".format(pprint.pformat(trace_data)))
+        log.debug(f"Not sending telemetry. kafka_topic={kafka_topic} OR kafka_nodes={kafka_nodes} not defined. \nTelemetry")
         return
     log.debug("Sending telemetry to {} on {}\n{}".format(kafka_topic, kafka_nodes, pprint.pformat(trace_data)))
     producer = Producer({'bootstrap.servers': ','.join(kafka_nodes)})
@@ -28,23 +29,27 @@ def push_trace(trace_data):
 
 def trace_start(request_type, name):
     span_id = "{}".format(random.getrandbits(64))
+    testservice = os.environ.get('TESTSERVICE', 'com.company.synthrunner')
     service_type = "cli" if request_type == "EXEC" else "rest"
-    testservice="{}.{}_{}".format(os.environ.get('TESTSERVICE'), service_type, os.environ.get('TESTSERVICE').split('.')[-1])
+    testservice="{}.{}_{}".format(testservice, service_type, testservice.split('.')[-1])
     service=os.environ.get('TOOL')
     microservice=name.split(" ")[0] if request_type == "EXEC" else service.split(".")[-1]
-    microservice=f"{request_type}_{microservice}".lower()
+    microservice=f"{service_type}_{microservice}".lower()
+    method=f"{service_type}/{name}".replace(" ", "/") if request_type == "EXEC" else f"{service_type}/{request_type}{name}"
+    assert service is not None and microservice is not None
     attributes = {
 
     } if request_type == 'EXEC' else {
 
     }
     attributes.update({
+        "peer.servicegroup": f"{service}",
+        "peer.service": f"{service}.{microservice}",
+        "peer.endpoint": f"{method}",
         'enduser.id': os.environ.get('USER', 'ngdevx'),
         'location.site': os.environ.get('SITE', 'unknown')
     })
 
-    method=f"{service_type}/{name}".replace(" ", "/") if request_type == "EXEC" else f"{service_type}/{request_type}{name}"
-    assert service is not None and microservice is not None
     # Send telemetry data
     trace = {
         'name': f"{service}.{microservice}/{method}",
@@ -59,6 +64,7 @@ def trace_start(request_type, name):
         "end_time": None,
         'status': {
             'status_code': 'UNSET',
+            'status_value': 0,
         },
         'attributes': attributes,
         'resource': {
@@ -81,6 +87,9 @@ def trace_start(request_type, name):
 def trace_end(trace_data, status):
     trace_data['data']['end_time'] = int(round(time.time() * 1000))
     trace_data['data']['status']['status_code'] = status
+    assert status != 'UNSET', "Status needs to be set when ending a trace"
+    trace_data['data']['status']['status_value'] = 1 if status =='OK' else 2
+
     trace_data["endTime"] = trace_data['data']['end_time']
     push_trace(trace_data)
     return trace_data

@@ -58,7 +58,7 @@ class WITCLIUser(CLIUser):
                         cli.failure(process.returncode, "WIT space not writable")
             return cli.failed
 
-    @tag('synth')
+    @tag('synthtest')
     @task
     def wit_space_create(self):
         """ Test the wit space create command """

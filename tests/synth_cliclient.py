@@ -31,7 +31,7 @@ class WITCLIUser(CLIUser):
     #             return cli.failed
     #         return cli.failed
 
-    @tag('synth')
+    @tag('synthtest')
     @task
     def wit_space_create(self):
         """ Test the wit space create command """

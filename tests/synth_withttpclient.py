@@ -25,7 +25,7 @@ class WITHTTPUser(HttpUser):
             self.client.delete('/api/wit/volume/%d' % vol)
 
 
-    @tag('synth')
+    @tag('synthtest')
     @task
     def create_volume(self):
         team = self.get_team('wit')

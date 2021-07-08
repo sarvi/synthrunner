@@ -59,8 +59,11 @@ def main() -> None:
         # Synthetic runner must not spawn new instances unless iterations > 1
         os.environ.setdefault('LOCUST_ITERATIONS', '1')
         # Synth runner always run in headless mode
+        os.environ.setdefault('LOCUST_ONLY_SUMMARY', 'true')
         os.environ.setdefault('LOCUST_HEADLESS', 'true')
-        os.environ.setdefault('LOCUST_TAGS', 'synth')
+        os.environ.setdefault('LOCUST_USERS', '1')
+        os.environ.setdefault('LOCUST_STOP_TIMEOUT', '60')
+        os.environ.setdefault('LOCUST_TAGS', 'synthtest')
         locust_main()
     except IndexError:
         RuntimeError('please supply a command for synthrunner - e.g. install.')

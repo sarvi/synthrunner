@@ -2,6 +2,7 @@ import time
 import subprocess as sp
 from requests import Response
 from locust import User
+from synthrunner import trace
 
 
 class CLIResponse(Response):
@@ -45,6 +46,9 @@ class CLIClient:
         )
 
     def execute(self, command, args=None, context=None, shell=True, catch_response=False):
+        if context is None:
+            context = {}
+        context['trace_data'] = trace.trace_start("EXEC", command)
         self.start_time = time.monotonic()
         self.command = command
         self.args = args
@@ -55,6 +59,7 @@ class CLIClient:
         self.failed = process.returncode
         response_length = len(self.error + self.output)
         resp = CLIResponse(self.output, self.error, self.failed)
+        self.context = context
         if not self.catch_response:
             self._on_execution(self.environment, command, response_length, self.start_time, resp, context, None)
         return self
@@ -63,13 +68,13 @@ class CLIClient:
         self.failed = 0
         response_length = len(self.error + self.output)
         resp = CLIResponse(self.output, self.error, 0)
-        self._on_execution(self.environment, self.command, response_length, self.start_time, resp, None, None)
+        self._on_execution(self.environment, self.command, response_length, self.start_time, resp, self.context, None)
 
     def failure(self, rcode, err_msg):
         self.failed = rcode
         response_length = len(self.error + self.output)
         resp = CLIResponse(self.output, err_msg, self.failed)
-        self._on_execution(self.environment, self.command, response_length, self.start_time, resp, None, None)
+        self._on_execution(self.environment, self.command, response_length, self.start_time, resp, self.context, None)
 
 
     @property

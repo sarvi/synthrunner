@@ -1,8 +1,11 @@
+import logging
 import time
-import subprocess as sp
+import subprocess
 from requests import Response
 from locust import User
 from synthrunner import trace
+
+log = logging.getLogger(__name__)  # pylint: disable=locally-disabled, invalid-name
 
 
 class CLIResponse(Response):
@@ -53,10 +56,14 @@ class CLIClient:
         self.command = command
         self.args = args
         self.catch_response = catch_response
-        process = sp.Popen(command + ' ' + args, shell=shell, stdout=sp.PIPE, stderr=sp.PIPE)
-        self.pid = process.pid
-        self.output, self.error = process.communicate()
+        cmd_line = command + ' ' + args
+        process = subprocess.run(cmd_line.split(), capture_output=True, shell=shell)
         self.failed = process.returncode
+        self.output = process.stdout.decode('utf-8')
+        self.error = process.stderr.decode('utf-8')
+        log.debug("Command line: " + cmd_line)
+        log.debug("STDOUT: " + self.output)
+        log.debug("STDERR: " + self.error)
         response_length = len(self.error + self.output)
         resp = CLIResponse(self.output, self.error, self.failed)
         self.context = context
@@ -76,14 +83,12 @@ class CLIClient:
         resp = CLIResponse(self.output, err_msg, self.failed)
         self._on_execution(self.environment, self.command, response_length, self.start_time, resp, self.context, None)
 
-
     @property
     def returncode(self):
         return self.failed
 
     def __enter__(self):
         return self
-
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         return

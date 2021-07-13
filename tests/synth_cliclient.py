@@ -42,4 +42,4 @@ class WITCLIUser(CLIUser):
             if cli.failed == 0:
                 cli.success()
             else:
-                cli.failure(cli.failed, cli.error.decode('utf-8'))
+                cli.failure(cli.failed, cli.error)

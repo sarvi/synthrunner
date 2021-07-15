@@ -57,7 +57,7 @@ class CLIClient:
         self.args = args
         self.catch_response = catch_response
         cmd_line = command + ' ' + args
-        process = subprocess.run(cmd_line.split(), capture_output=True, shell=shell)
+        process = subprocess.run(cmd_line, capture_output=True, shell=shell)
         self.failed = process.returncode
         self.output = process.stdout.decode('utf-8')
         self.error = process.stderr.decode('utf-8')

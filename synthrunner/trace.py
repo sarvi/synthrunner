@@ -74,8 +74,8 @@ def trace_start(request_type, name):
         },
     }
     trace_data = {
-        "source": os.environ.get('NG_SOURCE', 'com.cisco.devx.synthrunner.trace'),
-        "event": trace['kind'],
+        "source": os.environ.get('NG_SOURCE', 'com.cisco.devx.at'),
+        "event": 'trace',
         "startTime": trace['start_time'],
         "endTime": trace.get('end_time', None),
         "dataKey": str(uuid.uuid4()),

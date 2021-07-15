@@ -66,11 +66,14 @@ def main() -> None:
         os.environ.setdefault('LOCUST_STOP_TIMEOUT', '60')
         os.environ.setdefault('LOCUST_TAGS', 'synthtest')
         os.environ.setdefault('LOCUST_RUN_TIME', '120')
-        if os.environ.get('TOOL') is None:
-            log.error('Missing environment variable TOOL. Name of tool or service being tested. Example: com.cisco.devx.wit')
+        if os.environ.get('EVENT_SOURCE') is None:
+            log.error('Missing environment variable EVENT_SOURCE. Name of tool or service being tested. Example: com.cisco.devx.at')
             sys.exit(1)
-        if os.environ.get('TESTSERVICE') is None:
-            log.error('Missing environment variable TESTSERVICE. Name of tool or service being tested. Example: com.cisco.devx.synthrunner')
+        if os.environ.get('TESTEDTOOL') is None:
+            log.error('Missing environment variable TESTEDTOOL. Name of tool or service being tested. Example: com.cisco.devx.wit')
+            sys.exit(1)
+        if os.environ.get('SYNTHSERVICE') is None:
+            log.error('Missing environment variable SYNTHSERVICE. Name of tool or service being tested. Example: com.cisco.devx.synthrunner')
             sys.exit(1)
         locust_main()
     except IndexError:

@@ -48,27 +48,39 @@ class CLIClient:
             exception=err,
         )
 
-    def execute(self, command, args=None, context=None, shell=True, catch_response=False):
+    def execute(self, command, args=None, context=None, catch_response=False, shell=False, ):
         if context is None:
             context = {}
-        context['trace_data'] = trace.trace_start("EXEC", command)
+        context['trace_data'] = trace.trace_start(
+            "EXEC",
+            command if isinstance(command, list) else [i.strip() for i in command.split()])
         self.start_time = time.monotonic()
-        self.command = command
-        self.args = args
+        self.command = ' '.join(command) if isinstance(command, list) else command
+        self.args = args if isinstance(args, list) else [i.strip() for i in args.split(args)]
         self.catch_response = catch_response
-        cmd_line = command + ' ' + args
+        if shell:
+            if isinstance(command, list):
+                command = ' '.join(command)
+            if isinstance(args, list):
+                args = ' '.join(args)
+            cmd_line = command + ' ' + args
+        else:
+            if isinstance(command, list) == isinstance(args, list):
+                cmd_line = (command+args)
+            else:
+                cmd_line = (command.split()+args) if isinstance(args, list) else (' '.join(command) + ' ' + args)
         process = subprocess.run(cmd_line, capture_output=True, shell=shell)
         self.failed = process.returncode
         self.output = process.stdout.decode('utf-8')
         self.error = process.stderr.decode('utf-8')
-        log.debug("Command line: " + cmd_line)
+        log.debug("Command line: {}".format(cmd_line))
         log.debug("STDOUT: " + self.output)
         log.debug("STDERR: " + self.error)
         response_length = len(self.error + self.output)
         resp = CLIResponse(self.output, self.error, self.failed)
         self.context = context
         if not self.catch_response:
-            self._on_execution(self.environment, command, response_length, self.start_time, resp, context, None)
+            self._on_execution(self.environment, self.command, response_length, self.start_time, resp, context, None)
         return self
 
     def success(self):

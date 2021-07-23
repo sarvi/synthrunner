@@ -17,29 +17,16 @@ class WITCLIUser(CLIUser):
         self.spaces = []
 
 
-    # @task
-    # def wit_space_list(self, space=None, send_result=True):
-    #     """ Test the wit space list command """
-    #     print("WITCLIUser: space list")
-    #     command = "wit space list"
-    #     args = "-h" % space
-    #     with self.client.execute(command, args, catch_response=True) as cli:
-    #         stdout = cli.output.decode('utf-8')
-    #         stderr = cli.error.decode('utf-8')
-    #         if cli.failed:
-    #             cli.failure(cli.failed, stderr)
-    #             return cli.failed
-    #         return cli.failed
-
     @tag('synthtest')
     @task
-    def wit_space_create(self):
+    def helloworldtest(self):
         """ Test the wit space create command """
-        print("WITCLIUser: wit space create")
-        command = "wit space create"
-        args = "-h"
-        with self.client.execute(command, args, catch_response=True) as cli:
+        print("A simple test")
+        with self.client.execute(['ls'], ['/var']) as cli:
             if cli.failed == 0:
-                cli.success()
+                if 'log' not in cli.output.splitlines():
+                    cli.failure(1, "Var does not have log directory")
+                else:
+                    cli.success()
             else:
                 cli.failure(cli.failed, cli.error)

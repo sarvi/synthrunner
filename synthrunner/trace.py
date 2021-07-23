@@ -28,12 +28,14 @@ def push_trace(trace_data):
     producer.flush()
 
 def trace_start(request_type, name):
+    if isinstance(name, list):
+        name = ' '.join(name)
     span_id = "{}".format(random.getrandbits(64))
     synthservice = os.environ.get('SYNTHSERVICE', 'com.cisco.devx.synthrunner')
     service_type = "cli" if request_type == "EXEC" else "rest"
     synthservice="{}.{}_{}".format(synthservice, service_type, synthservice.split('.')[-1])
     testedservice=os.environ.get('TESTEDTOOL')
-    testedmicroservice=name.split(" ")[0] if request_type == "EXEC" else testedservice.split(".")[-1]
+    testedmicroservice=name.split(' ')[0] if request_type == "EXEC" else testedservice.split(".")[-1]
     testedmicroservice=f"{service_type}_{testedmicroservice}".lower()
     method=f"{service_type}/{name}".replace(" ", "/") if request_type == "EXEC" else f"{service_type}/{request_type}{name}"
     assert testedservice is not None and testedmicroservice is not None

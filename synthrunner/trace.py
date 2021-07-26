@@ -11,7 +11,7 @@ from confluent_kafka import Producer
 
 log = logging.getLogger(__name__)  # pylint: disable=locally-disabled, invalid-name
 
-TRACE_ID=str(uuid.uuid4())
+TRACE_ID=str(uuid.uuid4()).replace('-','')
 
 def push_trace(trace_data):
     """ Push data to kafka topic """

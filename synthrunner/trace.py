@@ -80,7 +80,7 @@ def trace_start(request_type, name):
         "event": 'trace',
         "startTime": trace['start_time'],
         "endTime": trace.get('end_time', None),
-        "dataKey": str(uuid.uuid4()),
+        "dataKey": f'{TRACE_ID}.{span_id}',
         "data": trace
     }
     push_trace(trace_data)

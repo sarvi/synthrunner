@@ -31,7 +31,7 @@ msgpack==1.0.2
 opencensus-context==0.1.2
 opencensus-ext-azure==1.0.8
 opencensus==0.7.13
-opentelemetry-api==1.3.0
+opentelemetry-api==1.4.0
 packaging==20.9; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 protobuf==3.17.2
 psutil==5.8.0
@@ -57,3 +57,4 @@ wrapt==1.12.1
 zipp==3.4.1
 zope.event==4.5.0
 zope.interface==5.4.0
+git+git://github.com/sarvi/opentelemetry-exporter-kafka-json@0.0.1#egg=opentelemetry-exporter-kafka-json

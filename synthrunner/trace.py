@@ -31,49 +31,35 @@ def trace_start(request_type, name):
     if isinstance(name, list):
         name = ' '.join(name)
     span_id = "{}".format(random.getrandbits(64))
-    synthservice = os.environ.get('SYNTHSERVICE', 'com.cisco.devx.synthrunner')
+    synth_service_namespace = os.environ.get('SYNTHSERVICE', 'com.cisco.devx.synthrunner')
     service_type = "cli" if request_type == "EXEC" else "rest"
-    synthservice="{}.{}_{}".format(synthservice, service_type, synthservice.split('.')[-1])
-    testedservice=os.environ.get('TESTEDTOOL')
-    testedmicroservice=name.split(' ')[0] if request_type == "EXEC" else testedservice.split(".")[-1]
-    testedmicroservice=f"{service_type}_{testedmicroservice}".lower()
-    method=f"{service_type}/{name}".replace(" ", "/") if request_type == "EXEC" else f"{service_type}/{request_type}{name}"
-    assert testedservice is not None and testedmicroservice is not None
-    attributes = {
-
-    } if request_type == 'EXEC' else {
-
-    }
-    attributes.update({
-        "peer.servicegroup": f"{testedservice}",
-        "peer.service": f"{testedservice}.{testedmicroservice}",
-        "peer.endpoint": f"{method}",
-        'enduser.id': os.environ.get('USER', 'ngdevx'),
-        'location.site': os.environ.get('SITE', 'unknown')
-    })
-
+    synth_service_name="cli_{}".format(synth_service_namespace.split('.')[-1])
+    tested_service_namespace=os.environ.get('TESTEDTOOL')
+    tested_service_name=name.split(' ')[0] if request_type == "EXEC" else tested_service_namespace.split(".")[-1]
+    tested_service_name=f"{service_type}_{tested_service_name}".lower()
+    tested_service_method=f"{service_type}/{name}".replace(" ", "/") if request_type == "EXEC" else f"{service_type}/{request_type}{name}"
+    assert synth_service_namespace is not None and tested_service_name is not None
     # Send telemetry data
     trace = {
-        'name': f"{testedservice}.{testedmicroservice}/{method}",
-        'context': {
-            'trace_id': TRACE_ID,
-            'span_id': span_id,
-            'trace_state': {},
-        },
+        'name': f"{tested_service_namespace}.{tested_service_name}/{tested_service_method}",
+        'trace_id': TRACE_ID,
+        'span_id': span_id,
+        'trace_state': {},
         "parent_id": None, # OPTIONAL. defaults to null
         "kind": "SpanKind.CLIENT",
         "start_time": int(round(time.time() * 1000)),
         "end_time": None,
-        'status': {
-            'status_code': 'UNSET',
-            'status_value': 0,
-        },
-        'attributes': attributes,
-        'resource': {
-            "service.name": synthservice,
-            "host.name": socket.getfqdn().split('.')[0],
-            'env.name': os.environ.get('INSTALLTYPE', 'STAGE'),
-        },
+        'status.code': 'UNSET',
+        'status.value': 0,
+        "service.name": synth_service_name,
+        'service.namespace': synth_service_namespace,
+        "host.name": socket.getfqdn().split('.')[0],
+        'deployment.environment': os.environ.get('INSTALLTYPE', 'staging'),
+        "peer.service.namespace": f"{tested_service_namespace}",
+        "peer.service.name": f"{tested_service_name}",
+        "peer.service.method": f"{tested_service_method}",
+        'enduser.id': os.environ.get('USER', 'ngdevx'),
+        'location.site': os.environ.get('SITE', 'unknown')
     }
     trace_data = {
         "source": os.environ.get('EVENT_SOURCE', 'com.cisco.devx.at'),
@@ -88,9 +74,9 @@ def trace_start(request_type, name):
 
 def trace_end(trace_data, status):
     trace_data['data']['end_time'] = int(round(time.time() * 1000))
-    trace_data['data']['status']['status_code'] = status
+    trace_data['data']['status.code'] = status
     assert status != 'UNSET', "Status needs to be set when ending a trace"
-    trace_data['data']['status']['status_value'] = 1 if status =='OK' else 2
+    trace_data['data']['status.value'] = 1 if status =='OK' else 2
 
     trace_data["endTime"] = trace_data['data']['end_time']
     push_trace(trace_data)

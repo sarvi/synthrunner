@@ -40,7 +40,7 @@ def my_request_handler(request_type, name, response_time, response_length, respo
         log.debug(f"Request to {name} failed with exception {exception}")
     else:
         log.debug(f"Successfully made a request to: {name}")
-    status_code = 'ERROR' if exception else ('OK' if response.ok else 'ERROR')
+    status_code = trace.StatusCode.ERROR if exception else (trace.StatusCode.OK if response.ok else trace.StatusCode.ERROR)
     trace.trace_end(context['trace_data'], status_code)
 
 
@@ -75,6 +75,7 @@ def main() -> None:
         if os.environ.get('SYNTHSERVICE') is None:
             log.error('Missing environment variable SYNTHSERVICE. Name of tool or service being tested. Example: com.cisco.devx.synthrunner')
             sys.exit(1)
+        trace.trace_init()
         locust_main()
     except IndexError:
         log.error('please supply a command for synthrunner - e.g. install.')

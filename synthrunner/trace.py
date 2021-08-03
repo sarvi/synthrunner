@@ -49,8 +49,8 @@ def trace_start(request_type, name):
         "kind": "SpanKind.CLIENT",
         "start_time": int(round(time.time() * 1000)),
         "end_time": None,
-        'status.code': 'UNSET',
-        'status.value': 0,
+        'status.status_code': 'UNSET',
+        'status.status_value': 0,
         "service.name": synth_service_name,
         'service.namespace': synth_service_namespace,
         "host.name": socket.getfqdn().split('.')[0],
@@ -74,9 +74,9 @@ def trace_start(request_type, name):
 
 def trace_end(trace_data, status):
     trace_data['data']['end_time'] = int(round(time.time() * 1000))
-    trace_data['data']['status.code'] = status
+    trace_data['data']['status.status_code'] = status
     assert status != 'UNSET', "Status needs to be set when ending a trace"
-    trace_data['data']['status.value'] = 1 if status =='OK' else 2
+    trace_data['data']['status.status_value'] = 1 if status =='OK' else 2
 
     trace_data["endTime"] = trace_data['data']['end_time']
     push_trace(trace_data)

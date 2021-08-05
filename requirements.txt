@@ -57,4 +57,4 @@ wrapt==1.12.1
 zipp==3.4.1
 zope.event==4.5.0
 zope.interface==5.4.0
-git+git://github.com/sarvi/opentelemetry-exporter-kafka-json@0.0.4#egg=opentelemetry-exporter-kafka-json
+git+git://github.com/sarvi/opentelemetry-exporter-kafka-json@0.0.5#egg=opentelemetry-exporter-kafka-json

@@ -66,6 +66,7 @@ def main() -> None:
         os.environ.setdefault('LOCUST_STOP_TIMEOUT', '60')
         os.environ.setdefault('LOCUST_TAGS', 'synthtest')
         os.environ.setdefault('LOCUST_RUN_TIME', '120')
+        os.environ.setdefault('LOCUST_EXIT_CODE_ON_ERROR', '2')
         if os.environ.get('EVENT_SOURCE') is None:
             log.error('Missing environment variable EVENT_SOURCE. Name of tool or service being tested. Example: com.cisco.devx.at')
             sys.exit(1)

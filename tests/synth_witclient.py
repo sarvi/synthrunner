@@ -31,7 +31,7 @@ class WITCLIUser(CLIUser):
         print("WITCLIUser: del_spaces")
         proc = subprocess.run(['wit', 'space', 'list','-team', 'wit', '--json'], capture_output=True)
         if proc.returncode != 0:
-            os.exit(1)
+            exit(1)
         spaces = json.loads(proc.stdout.decode('utf-8'))['cli_results']
 
         for spc in spaces:

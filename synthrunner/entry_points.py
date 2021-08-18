@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)  # pylint: disable=locally-disabled, invalid-n
 
 
 def request(self, method, url, context={}, **kwargs):
-    context['trace_data'] = trace.trace_start(method, url)
+    context['trace_data'] = trace.trace_start(method, url, getattr(self, 'instancename', None))
     rv = self._request(method, url, context=context, **kwargs)
     return rv
 

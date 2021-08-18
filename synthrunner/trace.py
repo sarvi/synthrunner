@@ -80,12 +80,14 @@ def trace_init():
 #     producer.produce(kafka_topic, key=trace_data['dataKey'].encode('utf-8'), value=json.dumps(trace_data).encode('utf-8'))
 #     producer.flush()
 
-def trace_start(request_type, name):
+def trace_start(request_type, name, instance=None):
     if isinstance(name, list):
         name = ' '.join(name)
     name = os.path.basename(name)
     tested_service_type = "cli" if request_type == "EXEC" else "rest"
     tested_service_namespace=os.environ.get('TESTEDTOOL')
+    if instance is not None:
+        tested_service_namespace = '.'.join([tested_service_namespace, instance])
     tested_service_name=os.path.basename(name.split(' ')[0]) if request_type == "EXEC" else tested_service_namespace.split(".")[-1]
     tested_service_name=f"{tested_service_type}_{tested_service_name}".lower()
     tested_service_method=f"{tested_service_type}/{name}".replace(" ", "/") if request_type == "EXEC" else f"{tested_service_type}/{request_type}{name}"

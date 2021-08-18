@@ -53,7 +53,8 @@ class CLIClient:
             context = {}
         context['trace_data'] = trace.trace_start(
             "EXEC",
-            command if isinstance(command, list) else [i.strip() for i in command.split()])
+            command if isinstance(command, list) else [i.strip() for i in command.split()],
+            getattr(self, 'instancename', None))
         self.start_time = time.monotonic()
         self.command = ' '.join(command) if isinstance(command, list) else command
         self.args = args if isinstance(args, list) else [i.strip() for i in args.split(args)]

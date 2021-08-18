@@ -83,9 +83,10 @@ def trace_init():
 def trace_start(request_type, name):
     if isinstance(name, list):
         name = ' '.join(name)
+    name = os.path.basename(name)
     tested_service_type = "cli" if request_type == "EXEC" else "rest"
     tested_service_namespace=os.environ.get('TESTEDTOOL')
-    tested_service_name=name.split(' ')[0] if request_type == "EXEC" else tested_service_namespace.split(".")[-1]
+    tested_service_name=os.path.basename(name.split(' ')[0]) if request_type == "EXEC" else tested_service_namespace.split(".")[-1]
     tested_service_name=f"{tested_service_type}_{tested_service_name}".lower()
     tested_service_method=f"{tested_service_type}/{name}".replace(" ", "/") if request_type == "EXEC" else f"{tested_service_type}/{request_type}{name}"
     assert tested_service_name is not None

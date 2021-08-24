@@ -104,7 +104,22 @@ def trace_start(request_type, name, instance=None):
         })
     return span
 
+def getstatus(status):
+    forced_status = environ.get('TESTING_FORCE_ERROR', None)
+    if forced_status is not None:
+        log.debug(f"TESTING_FORCE_ERROR Forcing status from {status} to {forced_status}")
+        if forced_status=="ERROR":
+            status = trace.StatusCode.ERROR
+        elif forced_status == "OK":
+            status = trace.StatusCode.OK
+        elif forced_status == "UNSET":
+            status = trace.StatusCode.UNSET
+        else:
+            log.debug(f"Unkown forced status {forced_status}")
+    return trace.status.Status(status)
+
+
 def trace_end(span, status):
-    span.set_status(trace.status.Status(status))
+    span.set_status(getstatus(status))
     span.end()
 

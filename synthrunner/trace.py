@@ -107,6 +107,7 @@ def trace_start(request_type, name, instance=None):
 def getstatus(status):
     forced_status = environ.get('TESTING_FORCE_ERROR', None)
     if forced_status is not None:
+        forced_status = forced_status.strip()
         log.debug(f"TESTING_FORCE_ERROR Forcing status from {status} to {forced_status}")
         if forced_status=="ERROR":
             status = trace.StatusCode.ERROR

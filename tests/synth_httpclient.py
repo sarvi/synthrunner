@@ -14,7 +14,8 @@ class QuickstartUser(HttpUser):
     @tag('synthtest')
     @task
     def hello_world(self):
-        self.client.get("/")
+        with self.client.get("/", catch_response=True) as response:
+            response.failure("Space is not writable")
 
 
     # def on_start(self):

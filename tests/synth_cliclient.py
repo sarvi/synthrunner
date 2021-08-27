@@ -22,11 +22,11 @@ class WITCLIUser(CLIUser):
     def helloworldtest(self):
         """ Test the wit space create command """
         print("A simple test")
-        with self.client.execute(['ls'], ['/var']) as cli:
+        with self.client.execute(['ls'], ['var'], catch_response=True) as cli:
             if cli.failed == 0:
                 if 'log' not in cli.output.splitlines():
                     cli.failure(1, "Var does not have log directory")
                 else:
                     cli.success()
             else:
-                cli.failure(cli.failed, cli.error)
+                cli.failure(cli.failed, cli.error+"Var does not have log directory")

@@ -3,6 +3,7 @@ import time
 import subprocess
 from requests import Response
 from locust import User
+from locust.exception import CatchResponseError, ResponseError
 from synthrunner import trace
 
 log = logging.getLogger(__name__)  # pylint: disable=locally-disabled, invalid-name
@@ -19,6 +20,11 @@ class CLIResponse(Response):
     @property
     def ok(self):
         return self.status_code == 0
+
+    def raise_for_status(self):
+        if hasattr(self, "error") and self.error:
+            raise self.error
+        Response.raise_for_status(self)
 
 
 class CLIClient:
@@ -59,6 +65,7 @@ class CLIClient:
         self.command = ' '.join(command) if isinstance(command, list) else command
         self.args = args if isinstance(args, list) else [i.strip() for i in args.split(args)]
         self.catch_response = catch_response
+        self.exc = None
         if shell:
             if isinstance(command, list):
                 command = ' '.join(command)
@@ -81,20 +88,26 @@ class CLIClient:
         resp = CLIResponse(self.output, self.error, self.failed)
         self.context = context
         if not self.catch_response:
-            self._on_execution(self.environment, self.command, response_length, self.start_time, resp, context, None)
+            if self.failed != 0:
+                self.exc = ResponseError(self.error)
+            self._on_execution(self.environment, self.command, response_length, self.start_time, resp, context, self.exc)
         return self
 
     def success(self):
         self.failed = 0
         response_length = len(self.error + self.output)
         resp = CLIResponse(self.output, self.error, 0)
-        self._on_execution(self.environment, self.command, response_length, self.start_time, resp, self.context, None)
+        if self.catch_response:
+            self._on_execution(self.environment, self.command, response_length, self.start_time, resp, self.context, None)
 
     def failure(self, rcode, err_msg):
         self.failed = rcode
         response_length = len(self.error + self.output)
         resp = CLIResponse(self.output, err_msg, self.failed)
-        self._on_execution(self.environment, self.command, response_length, self.start_time, resp, self.context, None)
+        if self.catch_response:
+            if err_msg:
+                self.exc = CatchResponseError(err_msg)
+            self._on_execution(self.environment, self.command, response_length, self.start_time, resp, self.context, self.exc)
 
     @property
     def returncode(self):

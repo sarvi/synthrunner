@@ -53,7 +53,7 @@ class WITCLIUser(CLIUser):
         command = "wit space create"
         spacename = f"synthetictest_{SITE}"
         log.debug(f"WITCLIUser: wit space create {spacename}")
-        with self.client.execute(['wit', 'space', 'create'], ['-space', spacename, '-noprompt', '-json', '-team', 'wit'], catch_response=True) as cli:
+        with self.client.execute(['wit', 'space', 'create'], ['-space', spacename, '-noprompt', '-json', '-team', 'wit', '-size', '20480'], catch_response=True) as cli:
             if cli.failed == 0:
                 spacename = f'space_{USERNAME}_{spacename}'
                 self.spaces.append(spacename)

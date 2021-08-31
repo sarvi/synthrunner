@@ -55,7 +55,7 @@ def main() -> None:
         locust.__version__ = "%s(%s)"%(locust.__version__, version.__version__)
         locust.version = locust.__version__
         locust.argument_parser.version = locust.__version__
-        load_dotenv(os.environ.get('ENVFILE', None))
+        load_dotenv(os.environ.get('ENVFILE', None), override=True)
         # Ensure that number of locust iterations is set, defaults to 1
         # Synthetic runner must not spawn new instances unless iterations > 1
         os.environ.setdefault('LOCUST_ITERATIONS', '1')
